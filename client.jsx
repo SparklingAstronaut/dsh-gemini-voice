@@ -1,7 +1,7 @@
 import React, {useEffect,useState} from 'react';
 import {IconMicrophoneOutlineRegular} from '@deepseek-ai/dsh-client-ui-primitives';
 export const inject=['slots'];
-export function apply(ctx){ctx.effect(()=>{const sheet=document.createElement('style');sheet.textContent='[role="dialog"] nav button:has([data-gemini-voice-nav]) > svg{display:none}[data-gemini-voice-nav] svg{stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}';document.head.appendChild(sheet);return()=>sheet.remove();});ctx.slots.inject('settings.section',()=>ctx.slots.register({name:'settings.section',id:'gemini-voice',order:5,label:()=> <span data-gemini-voice-nav="" style={{display:'inline-flex',alignItems:'center',gap:8}}><IconMicrophoneOutlineRegular size={16}/><span>语音</span></span>},VoiceSettings));}
+export function apply(ctx){ctx.effect(()=>{const sheet=document.createElement('style');sheet.textContent='[role="dialog"] nav button:has([data-gemini-voice-nav]) > svg{display:none}[data-gemini-voice-nav] svg{stroke:currentColor;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}';document.head.appendChild(sheet);return()=>sheet.remove();});ctx.slots.inject('settings.section',()=>ctx.slots.register({name:'settings.section',id:'gemini-voice',order:5,label:()=> <span data-gemini-voice-nav="" style={{display:'inline-flex',alignItems:'center',gap:8}}><IconMicrophoneOutlineRegular size={16}/><span>语音</span></span>},VoiceSettings));}
 const style={border:'1px solid #8885',borderRadius:8,padding:'6px 9px',background:'transparent',color:'inherit',cursor:'pointer'};
 function VoiceSettings(){
   const [configured,setConfigured]=useState(null),[key,setKey]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
