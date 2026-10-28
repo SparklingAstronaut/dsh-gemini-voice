@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+api-key.txt
+DeepSeekHarnessGeminiVoice/
+*.wav
+*.pcm
+*.log
+*.tgz
+.DS_Store

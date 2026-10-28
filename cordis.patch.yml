@@ -1,0 +1,3 @@
+- insert:
+    - id: gemini-voice
+      name: dsh-gemini-voice
