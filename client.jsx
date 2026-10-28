@@ -1,13 +1,13 @@
 import React, {useEffect,useState} from 'react';
 export const inject=['slots'];
-export function apply(ctx){ctx.slots.inject('settings.general.item',()=>ctx.slots.register({name:'settings.general.item',id:'gemini-voice-settings',order:80},VoiceSettings));}
+export function apply(ctx){ctx.slots.inject('settings.section',()=>ctx.slots.register({name:'settings.section',id:'gemini-voice',order:5,label:()=> '语音'},VoiceSettings));}
 const style={border:'1px solid #8885',borderRadius:8,padding:'6px 9px',background:'transparent',color:'inherit',cursor:'pointer'};
 function VoiceSettings(){
   const [configured,setConfigured]=useState(null),[key,setKey]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
   useEffect(()=>{let live=true;fetch('/gemini-voice/config').then(async r=>{if(!r.ok)throw Error();return r.json();}).then(c=>{if(live)setConfigured(c.configured);}).catch(()=>{if(live)setMessage('无法读取配置，请重新打开设置');});return()=>{live=false;};},[]);
   async function save(e){e.preventDefault();setBusy(true);setMessage('');try{const r=await fetch('/gemini-voice/config',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({apiKey:key})});const data=await r.json();if(!r.ok)throw Error(data.error||'保存失败');setKey('');setConfigured(true);setMessage('已保存');}catch(e){setMessage(e.message);}finally{setBusy(false);}}
-  return <section aria-label="Gemini 语音输入" style={{padding:'20px 0',borderTop:'1px solid #8883'}}>
-    <div style={{fontWeight:600,marginBottom:8}}>Gemini 语音输入</div>
+  return <section aria-label="语音设置" style={{padding:'8px 0 24px'}}>
+    <h2 style={{fontSize:18,fontWeight:600,margin:'0 0 20px'}}>语音</h2><div style={{fontWeight:600,marginBottom:8}}>Gemini API Key</div>
     <p style={{fontSize:13,opacity:.7,margin:'0 0 12px'}}>{configured===null?'正在读取配置…':configured?'API Key 已配置，可以直接使用麦克风。仅更换密钥时需要输入。':'尚未配置，请填写 Google AI Studio 的 API Key。'}</p>
     <form onSubmit={save} style={{display:'flex',gap:8,flexWrap:'wrap'}}>
       <input aria-label="Gemini API Key" type="password" autoComplete="off" placeholder={configured?'输入新的 API Key 以更换':'输入 Gemini API Key'} value={key} onChange={e=>setKey(e.target.value)} style={{flex:'1 1 240px',minWidth:0,border:'1px solid #8885',borderRadius:8,padding:'8px 10px',background:'transparent',color:'inherit'}}/>

@@ -9,7 +9,7 @@ export function pcmFromWave(audio){
 export function transcribeWave({audio,language='auto',key,terms=[],signal},Socket=WebSocket){
  signal.throwIfAborted();
  const pcm=pcmFromWave(audio),started=performance.now();
- if(!key)throw Error('请到设置 → 通用 → Gemini 语音输入配置 API Key');
+ if(!key)throw Error('请到设置 → 语音配置 API Key');
  if(!providerInfo.languages.includes(language))throw Error('不支持的识别语言');
  return new Promise((resolve,reject)=>{
   let ws,done=false,ending=false,uploading=false,state={final:'',interim:''};
