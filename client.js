@@ -40,7 +40,7 @@ var inject = ["slots"];
 function apply(ctx) {
   ctx.effect(() => {
     const sheet = document.createElement("style");
-    sheet.textContent = '[role="dialog"] nav button:has([data-gemini-voice-nav]) > svg{display:none}';
+    sheet.textContent = '[role="dialog"] nav button:has([data-gemini-voice-nav]) > svg{display:none}[data-gemini-voice-nav] svg{stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}';
     document.head.appendChild(sheet);
     return () => sheet.remove();
   });
