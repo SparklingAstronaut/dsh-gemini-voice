@@ -8,3 +8,6 @@ DeepSeekHarnessGeminiVoice/
 *.log
 *.tgz
 .DS_Store
+
+vocabulary.json
+vocabulary.json.*.tmp

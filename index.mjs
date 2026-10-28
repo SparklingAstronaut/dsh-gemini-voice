@@ -1,5 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename, unlink } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { emptyVocabulary, normalizeVocabulary, activeTerms } from './vocabulary.mjs';
 import { join } from 'node:path';
 import { userInfo } from 'node:os';
 import { configDirectory, environmentValue } from './storage.mjs';
@@ -7,6 +9,11 @@ import { setupMessage, reduceTranscript, MODEL } from './protocol.mjs';
 export const inject = ['webServer','connection'];
 const configDir = configDirectory(process.platform, process.env, userInfo().homedir);
 const keyPath = join(configDir, 'api-key.txt');
+const vocabularyPath = join(configDir, 'vocabulary.json');
+async function readVocabulary(){
+  try{return normalizeVocabulary(JSON.parse(await readFile(vocabularyPath,'utf8')));}
+  catch(e){if(e.code==='ENOENT')return emptyVocabulary();throw e;}
+}
 // Migrate the previous location when it is visible to this launcher. The
 // destination always stays outside AppData virtualization; never overwrite it.
 try {
@@ -28,6 +35,18 @@ export function apply(ctx) {
     if (!['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress)) return 403;
     if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) return 403;
   }
+  ctx.effect(()=>ctx.webServer.register({kind:'exact',path:'/gemini-voice/vocabulary',handler:async(req,res)=>{
+    try{
+      const denied=rejection(req);if(denied!==undefined)return json(res,denied,{});
+      if(req.method==='GET')return json(res,200,await readVocabulary());
+      if(req.method!=='POST'||req.headers['content-type']!=='application/json')return json(res,405,{});
+      let body='';for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>450000)return json(res,413,{});}
+      let config;try{config=normalizeVocabulary(JSON.parse(body));}catch(e){return json(res,400,{error:e instanceof SyntaxError?'词表格式无效':e.message});}
+      await mkdir(configDir,{recursive:true});const temporary=vocabularyPath+'.'+randomUUID()+'.tmp';
+      try{await writeFile(temporary,JSON.stringify(config,null,2),{mode:0o600,flag:'wx'});await rename(temporary,vocabularyPath);}finally{await unlink(temporary).catch(()=>{});}
+      return json(res,200,config);
+    }catch{return json(res,500,{error:'无法读写本机词表，请检查文件权限和格式'});}
+  }}));
   ctx.effect(()=>ctx.webServer.register({kind:'exact',path:'/gemini-voice/config',handler:async(req,res)=>{
     try {
       const denied = rejection(req); if(denied!==undefined) return json(res,denied,{});
@@ -59,9 +78,10 @@ async function connect(client) {
   client.on('close',()=>{done=true;clean();});client.on('error',()=>{done=true;clean();});
   try {
     const key=await getKey();if(!key)return fail('请先设置 Gemini API Key');if(done)return;
+    const terms=activeTerms(await readVocabulary());if(done)return;
     upstream=new WebSocket('wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key='+encodeURIComponent(key),{handshakeTimeout:15000,maxPayload:1024*1024});
     setupTimer=setTimeout(()=>fail('连接 Gemini 超时，请检查网络或 API Key'),20000);
-    upstream.on('open',()=>upstream.send(JSON.stringify(setupMessage())));
+    upstream.on('open',()=>upstream.send(JSON.stringify(setupMessage(terms))));
     upstream.on('message',data=>{
       try{
         const msg=JSON.parse(data.toString());
