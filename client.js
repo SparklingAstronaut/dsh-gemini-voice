@@ -35,9 +35,16 @@ __export(client_exports, {
 });
 module.exports = __toCommonJS(client_exports);
 var import_react = __toESM(require("react"), 1);
+var import_dsh_client_ui_primitives = require("@deepseek-ai/dsh-client-ui-primitives");
 var inject = ["slots"];
 function apply(ctx) {
-  ctx.slots.inject("settings.section", () => ctx.slots.register({ name: "settings.section", id: "gemini-voice", order: 5, label: () => "\u8BED\u97F3" }, VoiceSettings));
+  ctx.effect(() => {
+    const sheet = document.createElement("style");
+    sheet.textContent = '[role="dialog"] nav button:has([data-gemini-voice-nav]) > svg{display:none}';
+    document.head.appendChild(sheet);
+    return () => sheet.remove();
+  });
+  ctx.slots.inject("settings.section", () => ctx.slots.register({ name: "settings.section", id: "gemini-voice", order: 5, label: () => /* @__PURE__ */ import_react.default.createElement("span", { "data-gemini-voice-nav": "", style: { display: "inline-flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement(import_dsh_client_ui_primitives.IconMicrophoneOutlineRegular, { size: 16 }), /* @__PURE__ */ import_react.default.createElement("span", null, "\u8BED\u97F3")) }, VoiceSettings));
 }
 var style = { border: "1px solid #8885", borderRadius: 8, padding: "6px 9px", background: "transparent", color: "inherit", cursor: "pointer" };
 function VoiceSettings() {
