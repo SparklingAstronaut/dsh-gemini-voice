@@ -16,7 +16,7 @@
 
 ## 使用与接口
 
-点击官方麦克风录音，再点停止；官方界面先录完整段，再把 WAV 提交给识别后端。当前默认单段上限为两分钟。后端把 PCM 音频分块发到 Gemini Live API 的 `BidiGenerateContent` WebSocket 接口，仍使用 `gemini-3.5-transcribe-live`，没有改为文件转写或 `generateContent` 调用。
+点击官方麦克风录音，再点停止；官方界面先录完整段，再把 WAV 提交给识别后端。当前默认单段上限为两分钟。停止后会有上传和识别等待，完成后才填入文字；这不是边录音边显示文字的流式前端。后端把 PCM 音频分块发到 Gemini Live API 的 `BidiGenerateContent` WebSocket 接口，仍使用 `gemini-3.5-transcribe-live`，没有改为文件转写或 `generateContent` 调用。
 
 使用 VERBATIM 逐字转写，不启用 SMART 自动整理和排版。识别语言遵循官方语音设置，默认自动检测。最终文本交回官方界面插入草稿，不自动发送。取消操作会终止云端请求；失败时不自动切换其他识别服务。
 
@@ -40,7 +40,7 @@ API Key 存储于当前系统用户的 `~/.dsh/gemini-voice/api-key.txt`，不�
 
 `npm run build` 生成设置界面；`npm test` 检查共享配置路径、词表选择与校验、WAV 校验、Live API 协议、官方返回格式及取消清理。修改服务器代码后需完整退出并重新打开 Harness。
 
-已使用中文合成音频测试注册的 Gemini 后端：官方格式 WAV → Gemini Live → 官方所需的文字、音频时长、处理耗时。识别准确度和处理时间仍受口音、环境、网络和服务状态影响。
+已使用中文合成音频测试注册的 Gemini 后端：官方格式 WAV → Gemini Live → 官方所需的文字、音频时长、处理耗时。已在 Windows 桌面版通过官方麦克风实际录音验证：重启后选择 Gemini，停止录音后成功将文字填入草稿。识别准确度和处理时间仍受口音、环境、网络和服务状态影响。
 
 早期自制客户端参考 MIT 项目 [forrestahha/dsh-voice-input](https://github.com/forrestahha/dsh-voice-input)，现已移除其录音前端；保留 MIT 声明，许可证见 [LICENSE](LICENSE)。本项目不复制或修改官方语音界面代码。
 
