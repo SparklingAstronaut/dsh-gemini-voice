@@ -1,6 +1,6 @@
 # DeepSeek Harness Gemini 语音输入
 
-为 DeepSeek Harness 桌面版添加 Gemini 语音输入：简洁的麦克风图标、随实际音量变化的录音波形，以及停止后追加到草稿的转写文字。使用 VERBATIM 逐字转写模式，保留口述内容，不启用 SMART 自动整理和排版。
+为 DeepSeek Harness 桌面版添加 Gemini 语音输入：简洁的麦克风图标、随实际音量变化的录音波形，以及停止后追加到草稿的转写文字。使用 VERBATIM 逐字转写模式，保留口述内容，不启用 SMART 自动整理和排版，也不添加偏向特定软件名称的自定义词汇。
 
 ## 安装
 

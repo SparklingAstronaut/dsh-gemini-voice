@@ -1,6 +1,6 @@
 export const MODEL = 'gemini-3.5-transcribe-live';
 export function setupMessage() {
-  return {setup:{model:`models/${MODEL}`,generationConfig:{responseModalities:['TEXT']},inputAudioTranscription:{languageCodes:['cmn-Hans-CN','en-US'],customVocabulary:['DeepSeek Harness','Codex','Handy','Gemini','GitHub','API'],mode:'VERBATIM'},realtimeInputConfig:{automaticActivityDetection:{disabled:true}}}};
+  return {setup:{model:`models/${MODEL}`,generationConfig:{responseModalities:['TEXT']},inputAudioTranscription:{languageCodes:['cmn-Hans-CN','en-US'],mode:'VERBATIM'},realtimeInputConfig:{automaticActivityDetection:{disabled:true}}}};
 }
 export function reduceTranscript(state, content) {
   let {final, interim} = state;
