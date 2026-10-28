@@ -1,6 +1,20 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {reduceTranscript,appendDraft,setupMessage} from './protocol.mjs';
+import {configDirectory,environmentValue} from './storage.mjs';
+import {join} from 'node:path';
+
+test('desktop launches without LOCALAPPDATA keep the same credential directory',()=>{
+ const home=join('C:','Users','example');
+ const expected=join(home,'AppData','Local','DeepSeekHarnessGeminiVoice');
+ assert.equal(configDirectory('win32',{},home),expected);
+ assert.equal(configDirectory('win32',{LocalAppData:join(home,'AppData','Local')},home),expected);
+ assert.equal(configDirectory('win32',{LOCALAPPDATA:join(home,'AppData','Local')},home),expected);
+});
+test('blank environment key does not shadow a saved key',()=>{
+ assert.equal(environmentValue({GEMINI_API_KEY:'   '},'GEMINI_API_KEY'),'');
+ assert.equal(environmentValue({Gemini_Api_Key:' value '},'GEMINI_API_KEY'),'value');
+});
 test('interim revisions do not duplicate final text',()=>{
  let s={final:'',interim:''};
  s=reduceTranscript(s,{interimInputTranscription:{text:'你好'}});

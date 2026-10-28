@@ -28,7 +28,7 @@ npm run build
 
 ## 本机配置及隐私
 
-Windows 上 API Key 存储于 `%LOCALAPPDATA%\DeepSeekHarnessGeminiVoice\api-key.txt`，不是系统凭据库，请保护本机账号及文件权限。若没有 `LOCALAPPDATA`，当前实现使用进程工作目录下的 `DeepSeekHarnessGeminiVoice`。环境变量 `GEMINI_API_KEY` 若存在则优先使用，界面保存的密钥不会覆盖它。
+Windows 上 API Key 存储于 `%LOCALAPPDATA%\DeepSeekHarnessGeminiVoice\api-key.txt`，不是系统凭据库，请保护本机账号及文件权限。若桌面启动环境缺少 `LOCALAPPDATA`，使用当前系统用户的 `AppData\Local`，不随启动目录变化。环境变量名称按大小写不敏感读取。非空的 `GEMINI_API_KEY` 优先使用，界面保存的密钥不会覆盖它。
 
 录音通过本机 Harness 服务实时发送到 Google，插件不保存音频文件。停止或离开组件会释放麦克风。单段接近十分钟会停止，请分段输入。断线时可手动将已保留的转写放入输入框。
 

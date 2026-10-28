@@ -1,11 +1,13 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { userInfo } from 'node:os';
+import { configDirectory, environmentValue } from './storage.mjs';
 import { setupMessage, reduceTranscript, MODEL } from './protocol.mjs';
 export const inject = ['webServer','connection'];
-const configDir = join(process.env.LOCALAPPDATA || process.cwd(), 'DeepSeekHarnessGeminiVoice');
+const configDir = configDirectory(process.platform, process.env, userInfo().homedir);
 const keyPath = join(configDir, 'api-key.txt');
-const getKey = async () => (process.env.GEMINI_API_KEY || await readFile(keyPath,'utf8').catch(()=> '')).trim();
+const getKey = async () => environmentValue(process.env, 'GEMINI_API_KEY') || (await readFile(keyPath,'utf8').catch(e=>{if(e.code==='ENOENT')return '';throw e;})).trim();
 const json = (res, code, body) => {res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store'});res.end(JSON.stringify(body));};
 export function apply(ctx) {
   // Retain Harness authentication and reject cross-origin requests even on loopback.
@@ -25,7 +27,7 @@ export function apply(ctx) {
       if(typeof apiKey!=='string'||! /^[A-Za-z0-9._-]{20,256}$/.test(apiKey.trim())) return json(res,400,{error:'请输入有效的 Gemini API Key'});
       await mkdir(configDir,{recursive:true});await writeFile(keyPath,apiKey.trim(),{mode:0o600});
       json(res,200,{configured:true});
-    } catch {json(res,500,{error:'无法保存本机配置'});}
+    } catch {json(res,500,{error:req.method==='GET'?'无法读取本机语音配置，请检查文件访问权限':'无法保存本机配置'});}
   }}));
   const wss = new WebSocketServer({noServer:true,maxPayload:32768});
   ctx.effect(()=>()=>{for(const c of wss.clients)c.close();wss.close();});
