@@ -4,12 +4,13 @@ import {reduceTranscript,appendDraft,setupMessage} from './protocol.mjs';
 import {configDirectory,environmentValue} from './storage.mjs';
 import {join} from 'node:path';
 
-test('desktop launches without LOCALAPPDATA keep the same credential directory',()=>{
+test('desktop launches and virtualized AppData use the same shared DSH directory',()=>{
  const home=join('C:','Users','example');
- const expected=join(home,'AppData','Local','DeepSeekHarnessGeminiVoice');
+ const expected=join(home,'.dsh','gemini-voice');
  assert.equal(configDirectory('win32',{},home),expected);
  assert.equal(configDirectory('win32',{LocalAppData:join(home,'AppData','Local')},home),expected);
  assert.equal(configDirectory('win32',{LOCALAPPDATA:join(home,'AppData','Local')},home),expected);
+ assert.equal(configDirectory('win32',{LOCALAPPDATA:join(home,'AppData','Local','Packages','launcher','LocalCache','Local')},home),expected);
 });
 test('blank environment key does not shadow a saved key',()=>{
  assert.equal(environmentValue({GEMINI_API_KEY:'   '},'GEMINI_API_KEY'),'');

@@ -5,13 +5,8 @@ export function environmentValue(env, name) {
   return key ? (env[key] || '').trim() : '';
 }
 
-// A desktop launch can have a different environment from a terminal launch.
-// Never fall back to cwd: that silently changes the credential location.
+// Packaged Windows launchers can virtualize AppData into their own LocalCache.
+// Use the existing user DSH directory, shared by terminal and desktop launches.
 export function configDirectory(platform, env, home) {
-  const base = platform === 'win32'
-    ? environmentValue(env, 'LOCALAPPDATA') || join(home, 'AppData', 'Local')
-    : platform === 'darwin'
-      ? join(home, 'Library', 'Application Support')
-      : environmentValue(env, 'XDG_CONFIG_HOME') || join(home, '.config');
-  return join(base, 'DeepSeekHarnessGeminiVoice');
+  return join(home, '.dsh', 'gemini-voice');
 }

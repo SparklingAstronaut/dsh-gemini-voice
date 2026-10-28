@@ -7,6 +7,17 @@ import { setupMessage, reduceTranscript, MODEL } from './protocol.mjs';
 export const inject = ['webServer','connection'];
 const configDir = configDirectory(process.platform, process.env, userInfo().homedir);
 const keyPath = join(configDir, 'api-key.txt');
+// Migrate the previous location when it is visible to this launcher. The
+// destination always stays outside AppData virtualization; never overwrite it.
+try {
+  await readFile(keyPath);
+} catch(e) {
+  if(e.code==='ENOENT') {
+    const legacyBase=environmentValue(process.env,'LOCALAPPDATA') || join(userInfo().homedir,'AppData','Local');
+    const legacy=await readFile(join(legacyBase,'DeepSeekHarnessGeminiVoice','api-key.txt'),'utf8').catch(()=> '');
+    if(legacy.trim()){await mkdir(configDir,{recursive:true});await writeFile(keyPath,legacy.trim(),{mode:0o600,flag:'wx'}).catch(e=>{if(e.code!=='EEXIST')throw e;});}
+  }
+}
 const getKey = async () => environmentValue(process.env, 'GEMINI_API_KEY') || (await readFile(keyPath,'utf8').catch(e=>{if(e.code==='ENOENT')return '';throw e;})).trim();
 const json = (res, code, body) => {res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store'});res.end(JSON.stringify(body));};
 export function apply(ctx) {
