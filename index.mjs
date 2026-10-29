@@ -13,6 +13,7 @@ const configDir = configDirectory(process.platform, process.env, homedir());
 const keyPath = join(configDir, 'api-key.txt');
 const vocabularyPath = join(configDir, 'vocabulary.json');
 const modelPath = join(configDir, 'model.txt');
+const lastUsePath = join(configDir, 'last-use.json');
 async function readVocabulary(){
   try{return parseVocabularyText(await readFile(vocabularyPath,'utf8'));}
   catch(e){if(e.code==='ENOENT')return emptyVocabulary();throw e;}
@@ -83,7 +84,16 @@ export function apply(ctx) {
       try{
         // 词表读不出来（损坏/被其他程序改坏）时只是不用词表，不让每次转写都失败
         const terms=await readVocabulary().then(activeTerms).catch(()=>[]);
-        return await transcribeWave({...input,signal,key:await getKey(),model:await getModel(),terms});
+        const model=await getModel();
+        try{
+          const result=await transcribeWave({...input,signal,key:await getKey(),model,terms});
+          // 只记时间/时长/成败，不记录音、文字或密钥；体检用它确认语音真的走了 Gemini
+          writeAtomic(lastUsePath,JSON.stringify({at:new Date().toISOString(),ok:true,model,audioSeconds:result.audioSeconds,inferenceSeconds:result.inferenceSeconds})).catch(()=>{});
+          return result;
+        }catch(e){
+          writeAtomic(lastUsePath,JSON.stringify({at:new Date().toISOString(),ok:false,model,error:String(e?.message||e).slice(0,200)})).catch(()=>{});
+          throw e;
+        }
       }
       finally{active--;}
     }}));

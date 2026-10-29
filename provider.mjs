@@ -1,11 +1,26 @@
 import {WebSocket} from 'ws';
 import {setupMessage,reduceTranscript,MODEL} from './protocol.mjs';
 export const providerInfo={id:'gemini-cloud',name:'Gemini（逐字转写 + 个人词表）',location:'cloud',languages:['auto','zh','en','yue','ja','ko']};
-export function pcmFromWave(audio){
+// 录音解析：按 RIFF 块逐个找 fmt / data，不要求固定 44 字节文件头（官方录音器以后加 LIST 等块也能用）；
+// 接受 8–48 kHz 单声道 16-bit PCM，最长 10 分钟；采样率原样告诉 Gemini。
+export const MAX_AUDIO_SECONDS=600;
+const WAVE_ERROR='需要 16-bit 单声道 PCM WAV 录音（8–48 kHz，最长 10 分钟）';
+export function parseWave(audio){
  const b=Buffer.from(audio);
- if(b.length<46||b.length>3840044||b.toString('ascii',0,4)!=='RIFF'||b.toString('ascii',8,16)!=='WAVEfmt '||b.readUInt32LE(16)!==16||b.readUInt16LE(20)!==1||b.readUInt16LE(22)!==1||b.readUInt32LE(24)!==16000||b.readUInt32LE(28)!==32000||b.readUInt16LE(32)!==2||b.readUInt16LE(34)!==16||b.toString('ascii',36,40)!=='data'||b.readUInt32LE(4)!==b.length-8||b.readUInt32LE(40)!==b.length-44||(b.length-44)%2)throw Error('需要两分钟以内的 16 kHz 单声道 PCM16 WAV 录音');
- return b.subarray(44);
+ if(b.length<12||b.toString('ascii',0,4)!=='RIFF'||b.toString('ascii',8,12)!=='WAVE')throw Error(WAVE_ERROR);
+ let fmt=null,data=null,offset=12;
+ while(offset+8<=b.length){
+  const id=b.toString('ascii',offset,offset+4);let size=b.readUInt32LE(offset+4);const start=offset+8;
+  if(id==='data'&&(size===0xFFFFFFFF||start+size>b.length))size=b.length-start; // 流式写入的录音可能没回填长度
+  if(start+size>b.length)throw Error(WAVE_ERROR);
+  if(id==='fmt '&&size>=16)fmt={format:b.readUInt16LE(start),channels:b.readUInt16LE(start+2),rate:b.readUInt32LE(start+4),byteRate:b.readUInt32LE(start+8),align:b.readUInt16LE(start+12),bits:b.readUInt16LE(start+14)};
+  else if(id==='data'){data=b.subarray(start,start+size);break;}
+  offset=start+size+(size%2);
+ }
+ if(!fmt||!data||fmt.format!==1||fmt.channels!==1||fmt.bits!==16||fmt.align!==2||fmt.rate<8000||fmt.rate>48000||fmt.byteRate!==fmt.rate*2||data.length%2||data.length>fmt.rate*2*MAX_AUDIO_SECONDS)throw Error(WAVE_ERROR);
+ return {pcm:data,rate:fmt.rate};
 }
+export function pcmFromWave(audio){return parseWave(audio).pcm;}
 // 把服务端给的原因带进报错（便于区分模型下线 / 密钥无效 / 额度用完），同时确保密钥不会出现在报错里
 export function describeReason(reason,key){
  let text=String(reason??'').replace(/\s+/g,' ').trim().slice(0,200);
@@ -14,13 +29,13 @@ export function describeReason(reason,key){
 }
 export function transcribeWave({audio,language='auto',key,terms=[],model=MODEL,signal},Socket=WebSocket){
  signal.throwIfAborted();
- const pcm=pcmFromWave(audio),started=performance.now();
+ const {pcm,rate}=parseWave(audio),started=performance.now(),seconds=pcm.length/(rate*2);
  if(!key)throw Error('请到设置 → 语音配置 API Key');
  if(!providerInfo.languages.includes(language))throw Error('不支持的识别语言');
  return new Promise((resolve,reject)=>{
   let ws,done=false,ending=false,uploading=false,state={final:'',interim:''};
-  const timer=setTimeout(()=>finish(Error('Gemini 转写超时，请重试')),60000);
-  const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);signal.removeEventListener('abort',abort);ws?.terminate();if(error)reject(error);else resolve({text:state.final,audioSeconds:pcm.length/32000,inferenceSeconds:(performance.now()-started)/1000});};
+  const timer=setTimeout(()=>finish(Error('Gemini 转写超时，请重试')),60000+Math.ceil(seconds*1000)); // 录音越长，留的时间越多
+  const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);signal.removeEventListener('abort',abort);ws?.terminate();if(error)reject(error);else resolve({text:state.final,audioSeconds:seconds,inferenceSeconds:(performance.now()-started)/1000});};
   const abort=()=>finish(Error('语音转写已取消'));
   signal.addEventListener('abort',abort,{once:true});
   if(signal.aborted){abort();return;}
@@ -48,7 +63,7 @@ export function transcribeWave({audio,language='auto',key,terms=[],model=MODEL,s
     uploading=true;
     void(async()=>{
      await send({realtimeInput:{activityStart:{}}});
-     for(let i=0;i<pcm.length;i+=16000){signal.throwIfAborted();await send({realtimeInput:{audio:{data:pcm.subarray(i,i+16000).toString('base64'),mimeType:'audio/pcm;rate=16000'}}});}
+     for(let i=0;i<pcm.length;i+=rate){signal.throwIfAborted();await send({realtimeInput:{audio:{data:pcm.subarray(i,i+rate).toString('base64'),mimeType:`audio/pcm;rate=${rate}`}}});} // 每块 0.5 秒
      ending=true;await send({realtimeInput:{activityEnd:{}}});
     })().catch(()=>finish(Error(signal.aborted?'语音转写已取消':'无法上传录音')));
    }

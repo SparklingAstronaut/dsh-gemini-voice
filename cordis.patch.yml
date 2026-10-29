@@ -1,3 +1,10 @@
 - insert:
     - id: gemini-voice
       name: dsh-gemini-voice
+# 让官方语音输入默认用本插件的 Gemini 识别。写在插件自己的补丁里（而不是 profile 的 cordis.patch.yml）：
+# DSH 跳过或卸载本插件时，这段覆盖会一起消失，官方语音自动退回本地 SenseVoice，而不是报错“找不到 gemini-cloud”。
+- id: speech-to-text
+  name: '@deepseek-ai/dsh-experimental-speech-to-text'
+  config:
+    defaultProvider: gemini-cloud
+    language: auto

@@ -1,6 +1,6 @@
 {
   "name": "dsh-gemini-voice",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "type": "module",
   "main": "index.mjs",
   "exports": {
@@ -20,7 +20,7 @@
     }
   },
   "engines": {
-    "dsh": ">=0.2.1-rc.3 <0.3.0-0",
+    "dsh": ">=0.2.1-rc.3 <1.0.0-0",
     "node": ">=20"
   },
   "files": [
