@@ -1,50 +1,47 @@
 {
-  "name": "dsh-gemini-voice",
-  "version": "0.3.3",
-  "type": "module",
-  "main": "index.mjs",
-  "exports": {
-    ".": "./index.mjs",
-    "./client": "./client.js",
-    "./package.json": "./package.json"
-  },
-  "dsh": {
-    "bundle": {
-      "patch": "./cordis.patch.yml"
-    },
-    "client": {
-      "platform": "web",
-      "inject": [
-        "@deepseek-ai/dsh-client-ui-primitives"
-      ]
-    }
-  },
-  "engines": {
-    "dsh": ">=0.2.1-rc.3 <1.0.0-0",
-    "node": ">=20"
-  },
-  "files": [
-    "index.mjs",
-    "provider.mjs",
-    "protocol.mjs",
-    "storage.mjs",
-    "vocabulary.mjs",
-    "client.js",
-    "cordis.patch.yml",
-    "README.md",
-    "README.zh-CN.md",
-    "LICENSE"
-  ],
-  "scripts": {
-    "build": "node build.mjs",
-    "test": "node --test test.mjs vocabulary.test.mjs provider.test.mjs robustness.test.mjs"
-  },
-  "dependencies": {
-    "ws": "^8.18.3"
-  },
-  "devDependencies": {
-    "esbuild": "^0.25.12"
-  },
-  "license": "MIT",
-  "description": "Gemini Live transcription provider for the official DeepSeek Harness experimental voice input UI, with optional personal vocabulary."
+    "name":  "dsh-gemini-voice",
+    "version":  "0.3.4",
+    "type":  "module",
+    "main":  "index.mjs",
+    "exports":  {
+                    ".":  "./index.mjs",
+                    "./client":  "./client.js",
+                    "./package.json":  "./package.json"
+                },
+    "dsh":  {
+                "bundle":  {
+                               "patch":  "./cordis.patch.yml"
+                           },
+                "client":  {
+                               "platform":  "web"
+                           }
+            },
+    "engines":  {
+                    "dsh":  "\u003e=0.2.1-rc.3 \u003c1.0.0-0",
+                    "node":  "\u003e=20"
+                },
+    "files":  [
+                  "index.mjs",
+                  "provider.mjs",
+                  "protocol.mjs",
+                  "storage.mjs",
+                  "vocabulary.mjs",
+                  "client.js",
+                  "cordis.patch.yml",
+                  "README.md",
+                  "README.zh-CN.md",
+                  "LICENSE"
+              ],
+    "scripts":  {
+                    "build":  "node build.mjs",
+                    "test":  "node --test test.mjs vocabulary.test.mjs provider.test.mjs robustness.test.mjs client.test.mjs"
+                },
+    "dependencies":  {
+                         "ws":  "^8.18.3"
+                     },
+    "devDependencies":  {
+                            "esbuild":  "^0.25.12"
+                        },
+    "license":  "MIT",
+    "description":  "Gemini Live transcription provider for the official DeepSeek Harness experimental voice input UI, with optional personal vocabulary."
 }
