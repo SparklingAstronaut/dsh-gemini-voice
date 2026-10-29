@@ -1,6 +1,6 @@
 {
   "name": "dsh-gemini-voice",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "main": "index.mjs",
   "exports": {
@@ -19,9 +19,25 @@
       ]
     }
   },
+  "engines": {
+    "dsh": ">=0.2.1-rc.3 <0.3.0-0",
+    "node": ">=20"
+  },
+  "files": [
+    "index.mjs",
+    "provider.mjs",
+    "protocol.mjs",
+    "storage.mjs",
+    "vocabulary.mjs",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "node build.mjs",
-    "test": "node --test test.mjs vocabulary.test.mjs provider.test.mjs"
+    "test": "node --test test.mjs vocabulary.test.mjs provider.test.mjs robustness.test.mjs"
   },
   "dependencies": {
     "ws": "^8.18.3"

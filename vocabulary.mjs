@@ -15,6 +15,10 @@ export function normalizeVocabulary(value) {
   });
   return {enabled:value.enabled,active:value.active,groups};
 }
+// 从文件文本解析词表：容忍 UTF-8 BOM（记事本 / Windows PowerShell 5.1 写出的文件常带 BOM）
+export function parseVocabularyText(text) {
+  return normalizeVocabulary(JSON.parse(String(text).replace(/^\uFEFF/, '')));
+}
 export function activeTerms(value) {
   const config=normalizeVocabulary(value);
   return config.enabled ? config.groups[config.active].terms : [];

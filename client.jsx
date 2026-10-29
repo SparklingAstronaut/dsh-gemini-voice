@@ -1,11 +1,17 @@
 import React, {useEffect,useState} from 'react';
-import {IconMicrophoneOutlineRegular} from '@deepseek-ai/dsh-client-ui-primitives';
+import * as Primitives from '@deepseek-ai/dsh-client-ui-primitives';
+// 图标按需取用：DSH 以后改名/删掉这个图标时，导航退回纯文字“语音”，而不是渲染 undefined 组件拖垮设置弹窗
+const MicIcon=typeof Primitives.IconMicrophoneOutlineRegular==='function'||typeof Primitives.IconMicrophoneOutlineRegular==='object'?Primitives.IconMicrophoneOutlineRegular:null;
 export const inject=['slots'];
-export function apply(ctx){ctx.effect(()=>{const sheet=document.createElement('style');sheet.textContent='[role="dialog"] nav button:has([data-gemini-voice-nav]) > svg{display:none}[data-gemini-voice-nav] svg{stroke:currentColor;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}';document.head.appendChild(sheet);return()=>sheet.remove();});ctx.slots.inject('settings.section',()=>ctx.slots.register({name:'settings.section',id:'gemini-voice',order:5,label:()=> <span data-gemini-voice-nav="" style={{display:'inline-flex',alignItems:'center',gap:8}}><IconMicrophoneOutlineRegular size={16}/><span>语音</span></span>},VoiceSettings));}
+export function apply(ctx){
+  // 隐藏设置导航给未知 id 的默认齿轮图标（纯外观；DOM 结构变了最多多一个图标，不影响功能）
+  if(MicIcon)ctx.effect(()=>{const sheet=document.createElement('style');sheet.textContent='[role="dialog"] nav button:has([data-gemini-voice-nav]) > svg{display:none}[data-gemini-voice-nav] svg{stroke:currentColor;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}';document.head.appendChild(sheet);return()=>sheet.remove();});
+  ctx.slots.inject('settings.section',()=>ctx.slots.register({name:'settings.section',id:'gemini-voice',order:5,label:()=> MicIcon?<span data-gemini-voice-nav="" style={{display:'inline-flex',alignItems:'center',gap:8}}><MicIcon size={16}/><span>语音</span></span>:'语音'},VoiceSettings));
+}
 const style={border:'1px solid #8885',borderRadius:8,padding:'6px 9px',background:'transparent',color:'inherit',cursor:'pointer'};
 function VoiceSettings(){
-  const [configured,setConfigured]=useState(null),[key,setKey]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
-  useEffect(()=>{let live=true;fetch('/gemini-voice/config').then(async r=>{if(!r.ok)throw Error();return r.json();}).then(c=>{if(live)setConfigured(c.configured);}).catch(()=>{if(live)setMessage('无法读取配置，请重新打开设置');});return()=>{live=false;};},[]);
+  const [configured,setConfigured]=useState(null),[key,setKey]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[providerReady,setProviderReady]=useState(true),[model,setModel]=useState('');
+  useEffect(()=>{let live=true;fetch('/gemini-voice/config').then(async r=>{if(!r.ok)throw Error();return r.json();}).then(c=>{if(live){setConfigured(c.configured);setProviderReady(c.providerReady!==false);setModel(c.model||'');}}).catch(()=>{if(live)setMessage('无法读取配置，请重新打开设置');});return()=>{live=false;};},[]);
   async function save(e){e.preventDefault();setBusy(true);setMessage('');try{const r=await fetch('/gemini-voice/config',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({apiKey:key})});const data=await r.json();if(!r.ok)throw Error(data.error||'保存失败');setKey('');setConfigured(true);setMessage('已保存');}catch(e){setMessage(e.message);}finally{setBusy(false);}}
   return <section aria-label="语音设置" style={{padding:'8px 0 24px'}}>
     <h2 style={{fontSize:18,fontWeight:600,margin:'0 0 20px'}}>语音</h2><div style={{fontWeight:600,marginBottom:8}}>Gemini API Key</div>
@@ -15,7 +21,8 @@ function VoiceSettings(){
       <button style={{...style,opacity:(busy||!key.trim())?.5:1}} disabled={busy||!key.trim()} type="submit">{busy?'保存中…':'保存'}</button>
     </form>
     {message&&<p role="status" style={{fontSize:13}}>{message}</p>}
-    <p style={{fontSize:12,opacity:.6,margin:'10px 0 0'}}>密钥保存在本机。录音发送至 Google 进行转写，使用 Gemini API 项目的额度。</p>
+    {!providerReady&&<p role="alert" style={{fontSize:13,color:'#f5a623',margin:'10px 0 0'}}>DeepSeek 的语音输入功能当前没有启用，Gemini 转写暂时不可用；密钥和词表仍可在这里修改。</p>}
+    <p style={{fontSize:12,opacity:.6,margin:'10px 0 0'}}>密钥保存在本机。录音发送至 Google 进行转写，使用 Gemini API 项目的额度。{model?` 当前模型：${model}。`:''}</p>
     <VocabularySettings/>
   </section>;
 }
