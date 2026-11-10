@@ -4,12 +4,14 @@ import React, {useEffect,useState} from 'react';
 let Primitives={};
 try{Primitives=require('@deepseek-ai/dsh-client-ui-primitives')||{};}catch{Primitives={};}
 const pick=(name)=>{const value=Primitives[name];return typeof value==='function'||(typeof value==='object'&&value!==null)?value:null;};
-const MicIcon=pick('IconMicrophoneOutlineRegular');
+const MicIcon=pick('IconMicrophoneOutlineMedium')||pick('IconMicrophoneOutlineRegular');
+function VoiceIcon({size=16}) {
+  if(MicIcon)return <MicIcon size={size}/>;
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg>;
+}
 const UI={Form:pick('SettingsForm'),Secret:pick('SettingsSecretField'),Value:pick('SettingsValueField'),Switch:pick('Switch'),Segmented:pick('SegmentedControl'),Button:pick('Button')};
 const OFFICIAL=Object.values(UI).every(Boolean);
 export const inject=['slots'];
-// 设置导航里用麦克风图标替换默认齿轮（纯外观；DOM 结构变了最多多一个图标，不影响功能）
-const NAV_CSS='[role="dialog"] nav button:has([data-gemini-voice-nav]) > svg{display:none}[data-gemini-voice-nav] svg{stroke:currentColor;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}';
 // 版式与 DSH 官方设置页一致（标题 18px、介绍 13px、小节标题 13px 粗体、字段之间 0.5px 分隔线、输入框同官方尺寸和配色）
 const PAGE_CSS='.gv-page{max-width:760px;color:var(--dsw-alias-label-primary);display:flex;flex-direction:column}'
  +'.gv-heading{margin:0;font-size:18px;font-weight:600;line-height:1.4}'
@@ -29,8 +31,9 @@ const PAGE_CSS='.gv-page{max-width:760px;color:var(--dsw-alias-label-primary);di
  +'.gv-error{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-danger-primary,#f66)}'
  +'.gv-notice{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-success-primary,#4caf50)}';
 export function apply(ctx){
-  ctx.effect(()=>{const sheet=document.createElement('style');sheet.dataset.geminiVoice='true';sheet.textContent=(MicIcon?NAV_CSS:'')+PAGE_CSS;document.head.appendChild(sheet);return()=>sheet.remove();});
-  ctx.slots.inject('settings.section',()=>ctx.slots.register({name:'settings.section',id:'gemini-voice',order:5,label:()=> MicIcon?<span data-gemini-voice-nav="" style={{display:'inline-flex',alignItems:'center',gap:8}}><MicIcon size={16}/><span>语音</span></span>:'语音'},OFFICIAL?VoiceSettings:FallbackVoiceSettings));
+  ctx.effect(()=>{const sheet=document.createElement('style');sheet.dataset.geminiVoice='true';sheet.textContent=PAGE_CSS;document.head.appendChild(sheet);return()=>sheet.remove();});
+  ctx.slots.inject('settings.section',()=>ctx.slots.register({name:'settings.section',id:'gemini-voice',order:5,label:()=> '语音'},OFFICIAL?VoiceSettings:FallbackVoiceSettings));
+  ctx.slots.inject('settings.section.icon',()=>ctx.slots.register({name:'settings.section.icon',id:'gemini-voice'},VoiceIcon));
 }
 
 const KEY_PATTERN=/^[A-Za-z0-9._-]{20,256}$/;

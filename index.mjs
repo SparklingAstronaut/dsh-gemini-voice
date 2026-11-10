@@ -30,7 +30,7 @@ async function writeAtomic(path, text){
 try {
   await readFile(keyPath);
 } catch(e) {
-  if(e.code==='ENOENT') {
+  if(e.code==='ENOENT' && !environmentValue(process.env, 'DSH_GEMINI_VOICE_HOME')) {
     try {
       const legacyBase=environmentValue(process.env,'LOCALAPPDATA') || join(homedir(),'AppData','Local');
       const legacy=await readFile(join(legacyBase,'DeepSeekHarnessGeminiVoice','api-key.txt'),'utf8').catch(()=> '');

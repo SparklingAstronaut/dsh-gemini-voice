@@ -1,0 +1,18 @@
+name: Verify voice plugin
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  verify:
+    runs-on: windows-latest
+    env:
+      DSH_GEMINI_VOICE_HOME: ${{ github.workspace }}/.test-voice-home
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: git diff --exit-code -- client.js
+      - run: npm test
+      - run: npm pack --ignore-scripts

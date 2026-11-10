@@ -28,3 +28,10 @@ test('interim revisions do not duplicate final text',()=>{
 });
 test('existing draft is preserved',()=>{assert.equal(appendDraft('已有草稿','语音'),'已有草稿\n语音');assert.equal(appendDraft('','语音'),'语音');});
 test('only the dedicated transcription model with manual boundaries is used',()=>{const s=setupMessage().setup;assert.equal(s.model,'models/gemini-3.5-transcribe-live');assert.equal(s.realtimeInputConfig.automaticActivityDetection.disabled,true);assert.deepEqual(s.generationConfig.responseModalities,['TEXT']);});
+
+test('portable storage is explicit and does not relocate existing users implicitly',()=>{
+ const home=join('C:','Users','example'),portable=join('D:','portable','gemini-voice');
+ assert.equal(configDirectory('win32',{DSH_HOME:join('D:','existing-dsh')},home),join(home,'.dsh','gemini-voice'));
+ assert.equal(configDirectory('win32',{dsh_gemini_voice_home:portable},home),portable);
+ assert.equal(configDirectory('linux',{DSH_GEMINI_VOICE_HOME:'  '},home),join(home,'.dsh','gemini-voice'));
+});

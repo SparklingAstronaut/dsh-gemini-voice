@@ -17,21 +17,17 @@ Tested on Windows. Other operating systems have not been verified. The adapter c
 ## Installation
 
 1. In DeepSeek Harness, open **Plugins → Experimental** and enable the official voice input plugin.
-2. Clone this repository and build the adapter:
-
-   ```sh
-   git clone https://github.com/SparklingAstronaut/dsh-gemini-voice.git
-   cd dsh-gemini-voice
-   npm ci
-   npm run build
-   ```
-
-3. Add this directory as a local plugin in Harness and enable it. Keep the directory in place while the plugin is installed.
+2. Download [dsh-gemini-voice-0.3.7.tgz](https://github.com/SparklingAstronaut/dsh-gemini-voice/releases/download/v0.3.7/dsh-gemini-voice-0.3.7.tgz), verify the release SHA-256, and save it in a permanent location.
+3. Install that archive path (or its exact versioned release URL) through the plugin manager. When upgrading, replace the old source through the manager. Keep the archive when using a local path. Do not overwrite `node_modules` manually: the recorded dependency must point to this archive so later plugin operations restore the fixed version.
 4. Fully exit Harness through its application menu, then reopen it. Closing the window alone may leave the application running.
 5. Open **Settings → Voice** and save your Google AI Studio API key.
 6. In the official voice input plugin configuration, select the **Gemini** recognition provider. You do not need to download the SenseVoice model to use Gemini.
 
 Version 0.3.0 and later require the official voice input plugin. Upgrading from an older version removes this adapter's standalone recording interface while retaining the saved API key and vocabulary. Version 0.3.1 moves configuration into a dedicated **Voice** settings section, with a microphone icon, alongside General settings.
+
+Version **0.3.7** registers the microphone through `settings.section.icon` and keeps the label plain text. This fixes the duplicate gear/microphone on DSH 0.2.2-rc.1 without depending on host DOM structure. Source, generated client, release archive and Environment Kit 1.0.2 use the same implementation. Versions 0.3.5/0.3.6 were local repairs, not public releases.
+
+For development: clone, run `npm ci`, `npm run build`, `npm test`, then `npm pack`. Install the generated archive through the plugin manager.
 
 ## How it works
 
@@ -72,13 +68,15 @@ Configuration is stored outside the plugin repository:
 
 These are local files, not entries in an operating system credential vault. Protect your account and file permissions, and never commit or share these files.
 
+`DSH_GEMINI_VOICE_HOME` optionally selects an explicit configuration directory. Environment Kit sets it to its own `DSH_HOME/gemini-voice`; in that mode no legacy AppData key is imported. Ordinary installations keep their existing shared directory even if `DSH_HOME` is set.
+
 The shared `.dsh` location avoids Windows AppData virtualization causing different launchers to see different configurations. A readable legacy AppData key is migrated only when the new key file does not exist. A nonempty `GEMINI_API_KEY` environment variable takes precedence over the saved key; saving a key in the interface does not override that variable.
 
 This adapter does not write recordings to files. Audio is sent to Google after recording stops. Settings endpoints retain Harness authentication and restrict access to loopback addresses and same-origin requests. The API key is never returned to the frontend.
 
 ## Compatibility and updates
 
-The adapter uses the official experimental `speechToText.register()` interface without modifying Harness installation files. Changes to that interface or the settings extension points may require an adapter update. The Voice navigation icon also uses a narrowly scoped style adjustment for the current settings layout.
+The adapter uses the official experimental `speechToText.register()` interface without modifying Harness installation files. Changes to that interface or the settings extension points may require an adapter update. The Voice navigation icon uses the official settings icon slot.
 
 After updating Harness, check that the Gemini provider is available and test a short recording. To disable this adapter, first select another available recognition provider in the official voice input configuration.
 
@@ -98,3 +96,5 @@ The registered provider has been tested with synthesized Chinese speech. Actual 
 The earlier standalone frontend drew on the MIT-licensed [forrestahha/dsh-voice-input](https://github.com/forrestahha/dsh-voice-input). That recording frontend has been removed; the MIT notice remains in [LICENSE](LICENSE). This project does not copy or modify the official recording UI code.
 
 This is a community adapter, not an official DeepSeek, Google, or OpenAI product.
+
+The 0.3.7 release checks cover navigation registration, fallback icons, storage isolation and package reinstall behavior. They do not constitute a new microphone or paid cloud transcription test.

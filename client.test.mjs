@@ -17,7 +17,7 @@ function load(primitives){
   globalThis.document={createElement:()=>({dataset:{},remove(){}}),head:{appendChild(){}}};
   new Function(source)();
   plugin.apply({effect(fn){fn();},slots:{inject(_n,cb){cb();},register(spec,component){registrations.push({spec,component});return()=>{};}}});
-  return registrations[0];
+  return {...registrations.find(r=>r.spec.name==='settings.section'), registrations};
 }
 function flatten(node,out=[]){
   if(node===null||node===undefined||node===false)return out;
@@ -43,7 +43,7 @@ test('with the DSH components the voice page uses the official settings form and
   const secret=nodes.find(n=>n.type===primitives.SettingsSecretField);
   assert.ok(secret,'API key uses SettingsSecretField');
   assert.equal(secret.props.stateLabel,'未配置');
-  assert.equal(typeof spec.label(),'object','nav label keeps the microphone icon');
+  assert.equal(spec.label(),'语音','the label is plain text; the icon has its own slot');
 });
 
 test('if any DSH component is missing the plugin still loads and uses the simple page',()=>{
@@ -62,4 +62,23 @@ test('package no longer declares the component package as a hard dependency',()=
   const pkg=JSON.parse(readFileSync(new URL('./package.json',import.meta.url),'utf8'));
   assert.equal(pkg.dsh.client.inject,undefined);
   assert.equal(pkg.dsh.client.platform,'web');
+});
+
+for(const mode of ['medium','regular','missing']){
+ test(`navigation owns exactly one icon slot with ${mode} primitives`,()=>{
+  const medium=fake('Medium'),regular=fake('Regular');
+  const primitives=mode==='missing'?undefined:{IconMicrophoneOutlineRegular:regular,...(mode==='medium'?{IconMicrophoneOutlineMedium:medium}:{})};
+  const {spec,registrations}=load(primitives);
+  assert.equal(spec.label(),'语音');
+  assert.equal(registrations.filter(r=>r.spec.name==='settings.section').length,1);
+  const icons=registrations.filter(r=>r.spec.name==='settings.section.icon');
+  assert.equal(icons.length,1);assert.equal(icons[0].spec.id,spec.id);
+  const rendered=icons[0].component({size:20,active:true});
+  assert.equal(rendered.type,mode==='medium'?medium:mode==='regular'?regular:'svg');
+  assert.equal(rendered.props[mode==='missing'?'width':'size'],20);
+  assert.equal(icons[0].component({}).props[mode==='missing'?'width':'size'],16);
+ });
+}
+test('navigation never depends on host DOM structure or hides host SVGs',()=>{
+ assert.doesNotMatch(source,/data-gemini-voice-nav|:has\(/);
 });

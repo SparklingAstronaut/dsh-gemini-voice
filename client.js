@@ -47,21 +47,25 @@ var pick = (name) => {
   const value = Primitives[name];
   return typeof value === "function" || typeof value === "object" && value !== null ? value : null;
 };
-var MicIcon = pick("IconMicrophoneOutlineRegular");
+var MicIcon = pick("IconMicrophoneOutlineMedium") || pick("IconMicrophoneOutlineRegular");
+function VoiceIcon({ size = 16 }) {
+  if (MicIcon) return /* @__PURE__ */ import_react.default.createElement(MicIcon, { size });
+  return /* @__PURE__ */ import_react.default.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react.default.createElement("rect", { x: "9", y: "2", width: "6", height: "12", rx: "3" }), /* @__PURE__ */ import_react.default.createElement("path", { d: "M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" }));
+}
 var UI = { Form: pick("SettingsForm"), Secret: pick("SettingsSecretField"), Value: pick("SettingsValueField"), Switch: pick("Switch"), Segmented: pick("SegmentedControl"), Button: pick("Button") };
 var OFFICIAL = Object.values(UI).every(Boolean);
 var inject = ["slots"];
-var NAV_CSS = '[role="dialog"] nav button:has([data-gemini-voice-nav]) > svg{display:none}[data-gemini-voice-nav] svg{stroke:currentColor;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}';
 var PAGE_CSS = ".gv-page{max-width:760px;color:var(--dsw-alias-label-primary);display:flex;flex-direction:column}.gv-heading{margin:0;font-size:18px;font-weight:600;line-height:1.4}.gv-intro{color:var(--dsw-alias-label-tertiary);margin:6px 0 8px;font-size:13px;line-height:1.5}.gv-section-title{color:var(--dsw-alias-label-primary);margin:16px 0 4px;font-size:13px;font-weight:600;line-height:1.5}.gv-field{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-top:.5px solid var(--dsw-alias-border-l2)}.gv-field-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.gv-actions{display:inline-flex;gap:8px}.gv-label{font-size:13px;line-height:1.5}.gv-toggle-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;font-size:13px;line-height:1.5}.gv-hint{margin:0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-tertiary)}.gv-invalid{margin:0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-danger-primary,#f66)}.gv-input{box-sizing:border-box;height:34px;padding:0 12px;border:.5px solid var(--dsw-alias-border-l4);border-radius:var(--dsw-radius-md);background:var(--dsw-alias-bg-layer-3);font:inherit;font-size:13px;line-height:1.5;color:var(--dsw-alias-label-primary)}.gv-input:focus{outline:none;border-color:var(--dsw-alias-label-tertiary)}.gv-textarea{height:auto;min-height:132px;padding:8px 12px;resize:vertical}.gv-warning{margin:4px 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-warning-primary,#f5a623)}.gv-error{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-danger-primary,#f66)}.gv-notice{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-success-primary,#4caf50)}";
 function apply(ctx) {
   ctx.effect(() => {
     const sheet = document.createElement("style");
     sheet.dataset.geminiVoice = "true";
-    sheet.textContent = (MicIcon ? NAV_CSS : "") + PAGE_CSS;
+    sheet.textContent = PAGE_CSS;
     document.head.appendChild(sheet);
     return () => sheet.remove();
   });
-  ctx.slots.inject("settings.section", () => ctx.slots.register({ name: "settings.section", id: "gemini-voice", order: 5, label: () => MicIcon ? /* @__PURE__ */ import_react.default.createElement("span", { "data-gemini-voice-nav": "", style: { display: "inline-flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ import_react.default.createElement(MicIcon, { size: 16 }), /* @__PURE__ */ import_react.default.createElement("span", null, "\u8BED\u97F3")) : "\u8BED\u97F3" }, OFFICIAL ? VoiceSettings : FallbackVoiceSettings));
+  ctx.slots.inject("settings.section", () => ctx.slots.register({ name: "settings.section", id: "gemini-voice", order: 5, label: () => "\u8BED\u97F3" }, OFFICIAL ? VoiceSettings : FallbackVoiceSettings));
+  ctx.slots.inject("settings.section.icon", () => ctx.slots.register({ name: "settings.section.icon", id: "gemini-voice" }, VoiceIcon));
 }
 var KEY_PATTERN = /^[A-Za-z0-9._-]{20,256}$/;
 var MAX_TERMS = 100;
