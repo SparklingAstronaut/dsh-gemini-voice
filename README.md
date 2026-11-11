@@ -25,7 +25,7 @@ Tested on Windows. Other operating systems have not been verified. The adapter c
 
 Version 0.3.0 and later require the official voice input plugin. Upgrading from an older version removes this adapter's standalone recording interface while retaining the saved API key and vocabulary. Version 0.3.1 moves configuration into a dedicated **Voice** settings section, with a microphone icon, alongside General settings.
 
-Version **0.3.7** registers the microphone through `settings.section.icon` and keeps the label plain text. This fixes the duplicate gear/microphone on DSH 0.2.2-rc.1 without depending on host DOM structure. Source, generated client, release archive and Environment Kit 1.0.2 use the same implementation. Versions 0.3.5/0.3.6 were local repairs, not public releases.
+Version **0.3.7** registers the microphone through `settings.section.icon` and keeps the label plain text. This fixes the duplicate gear/microphone on DSH 0.2.2-rc.1 without depending on host DOM structure. Source, generated client, release archive and Environment Kit 1.0.2 and later use the same implementation. [Current kit and installation guide](https://github.com/SparklingAstronaut/dsh-env-kit). Versions 0.3.5/0.3.6 were local repairs, not public releases.
 
 For development: clone, run `npm ci`, `npm run build`, `npm test`, then `npm pack`. Install the generated archive through the plugin manager.
 
